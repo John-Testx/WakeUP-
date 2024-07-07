@@ -156,15 +156,10 @@ public partial class Enemy : MonoBehaviour
                 if (!Physics.Raycast(transform.position, directionToTarget, out RaycastHit hit, avoidanceDistance, obstructionMask))
                 {
                      //FirstCheck version for enemy over player
-                    if (!Physics.Raycast(transform.position, Vector3.down, avoidanceDistance, groundMask))
-                    {
+                    
                         canSeePlayer = true;
-                    }
-                    else
-                    {
-                        // Player is below the enemy or obstructed vertically
-                        canSeePlayer = false;
-                    }
+                    
+                    
                 }
                 else
                 {
@@ -450,7 +445,7 @@ public partial class Enemy : MonoBehaviour
         return new Vector3(Mathf.Sin(angleInDegrees * Mathf.Deg2Rad), 0, Mathf.Cos(angleInDegrees * Mathf.Deg2Rad));
     }
 
-    /*private void OnDrawGizmos()
+    private void OnDrawGizmos()
     {
 
         UnityEditor.Handles.color = Color.white;
@@ -469,7 +464,7 @@ public partial class Enemy : MonoBehaviour
                 UnityEditor.Handles.DrawLine(transform.transform.position, playerRef.transform.position);
             }
 
-    }*/
+    }
 
 
 
