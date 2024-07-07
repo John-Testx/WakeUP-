@@ -10,12 +10,13 @@ public class PauseMenu : MonoBehaviour
 
     public GameObject pauseMenu;
     public GameObject optionsMenu;
+    bool allowOptions = true;
     public Image backgroundImage;
     bool onPause = false;
     
     void Start()
     {
-        
+        if (optionsMenu != null){ allowOptions = true; }else { allowOptions = false; }
     }
 
     // Update is called once per frame
@@ -24,18 +25,23 @@ public class PauseMenu : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            PlayerCamera.SetMoveMouse(onPause);
-            onPause = !onPause; // Toggle onPause state
-            backgroundImage.enabled = onPause; // Set background image enabled state based on onPause
-            pauseMenu.SetActive(onPause); // Set menu active state based on onPause
-            Cursor.lockState = onPause ? CursorLockMode.None : CursorLockMode.Locked; // Set cursor lock state based on onPause
-            Cursor.visible = onPause; // Set cursor visibility based on onPause
+            PauseGame();
         }
 
-        if (optionsMenu.activeSelf == true && !onPause)
+        if (allowOptions && !onPause)
         {
             optionsMenu.SetActive(false);
         }
+    }
+
+    public void PauseGame()
+    {
+        PlayerCamera.SetMoveMouse(onPause);
+        onPause = !onPause; // Toggle onPause state
+        backgroundImage.enabled = onPause; // Set background image enabled state based on onPause
+        pauseMenu.SetActive(onPause); // Set menu active state based on onPause
+        Cursor.lockState = onPause ? CursorLockMode.None : CursorLockMode.Locked; // Set cursor lock state based on onPause
+        Cursor.visible = onPause; // Set cursor visibility based on onPause
     }
 
     public void ReturnToMainMenu()
