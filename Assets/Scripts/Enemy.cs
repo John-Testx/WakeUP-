@@ -140,6 +140,16 @@ public partial class Enemy : MonoBehaviour
         }
     }
 
+    private bool IsGroundBetween(Vector3 startPosition, Vector3 endPosition)
+    {
+        Vector3 direction = (endPosition - startPosition).normalized;
+        float distance = Vector3.Distance(startPosition, endPosition);
+
+        return Physics.Raycast(startPosition, direction, distance, groundMask);
+    }
+
+
+
     private void FieldOfViewCheck()
     {
         Collider[] rangeChecks = Physics.OverlapSphere(transform.position, radius, targetMask);
@@ -155,11 +165,16 @@ public partial class Enemy : MonoBehaviour
 
                 if (!Physics.Raycast(transform.position, directionToTarget, out RaycastHit hit, avoidanceDistance, obstructionMask))
                 {
-                     //FirstCheck version for enemy over player
-                    
+                    //FirstCheck version for enemy over player
+                    if (!IsGroundBetween(transform.position, target.position))
+                    {
                         canSeePlayer = true;
-                    
-                    
+                    }
+                    else
+                    {
+                        // Player is below the enemy or obstructed vertically
+                        canSeePlayer = false;
+                    }
                 }
                 else
                 {
