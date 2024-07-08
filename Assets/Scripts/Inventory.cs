@@ -17,6 +17,7 @@ public class Inventory : MonoBehaviour
     void Start()
     {
         playerLight= flashlight.GetComponent<Light>();
+        
         lightOn = true;
         
     }
@@ -24,7 +25,7 @@ public class Inventory : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        TurnFlashlight();
+        if (playerLight != null) { TurnFlashlight(); }
         DropItem();
     }
 
