@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 24f92203e57d57847a77215412e5f68b, type: 3}
-  m_Name: EnemyTest1
+  m_Name: EnemyMelee
   m_EditorClassIdentifier: 
   health: 100
   attackRange: 2
-  attackSpeed: 5
+  attackSpeed: 5.5
   enemyType: 1

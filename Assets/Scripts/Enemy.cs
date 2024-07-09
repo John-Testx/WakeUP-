@@ -59,8 +59,12 @@ public partial class Enemy : MonoBehaviour
     
     public float enemySpeed = 0.7f;
     public float wanderSpeed = 0.7f;
-    public float wanderElapsedTime = 0f;
+    public float wanderChangeTimer = 0f;
     public float wanderTime = 10f;
+    public float hoverChangeInterval = 2f;
+    float currentHoverOffset = 0f;
+    private float hoverChangeTimer = 0f;
+    private float targetHoverOffset = 0f;
     public float interactionDistance = 3f;
     public float jumpStrength;
     public float jumpCounter;
@@ -282,7 +286,7 @@ public partial class Enemy : MonoBehaviour
             }
             else
             {
-                MoveEnemy(playerRef.transform);
+                TypeOfMovement(playerRef.transform);
             }
         }
         else
@@ -294,12 +298,37 @@ public partial class Enemy : MonoBehaviour
 
     }
 
+    void TypeOfMovement(Transform target) 
+    {
+        switch (enemy.enemyType)
+        {
+            case ScriptableEnemy.EnemyType.Flying:
+                MoveFlyingEnemy(target);
+                break;
+            case ScriptableEnemy.EnemyType.Melee:
+                MoveEnemy(target);
+                break;
+        }
+    }
+
+    void TypeOfMovement(Vector3 target)
+    {
+        switch (enemy.enemyType)
+        {
+            case ScriptableEnemy.EnemyType.Flying:
+                MoveFlyingEnemy(target);
+                break;
+            case ScriptableEnemy.EnemyType.Melee:
+                MoveEnemy(target);
+                break;
+        }
+    }
 
     void FollowPath()
     {
         currentRoute = pathList[currentRouteIndex];
 
-        MoveEnemy(currentRoute);
+        TypeOfMovement(currentRoute);
 
         float horizontalDistance = Vector3.Distance(new Vector3(transform.position.x, 0, transform.position.z), new Vector3(currentRoute.position.x, 0, currentRoute.position.z));
 
@@ -314,19 +343,22 @@ public partial class Enemy : MonoBehaviour
 
     void Wander()
     {
+        wanderChangeTimer += Time.fixedDeltaTime;
+
         // Check if it's time to change direction
-        if (Time.time >= wanderElapsedTime)
+        if (wanderChangeTimer > wanderTime)
         {
+
             // Generate a new random direction
             Vector3 randomDirection = new Vector3(Random.Range(-1f, 1f), 0, Random.Range(-1f, 1f));
 
             // Set the new direction and reset the timer
             wanderDirection = randomDirection;
-            wanderElapsedTime = Time.time + Random.Range(5f, wanderTime);
+            wanderChangeTimer = 0;
         }
 
         // Move the enemy in the current wander direction
-        MoveEnemy(wanderDirection);
+        TypeOfMovement(wanderDirection);
     }
 
 
@@ -454,6 +486,7 @@ public partial class Enemy : MonoBehaviour
 
     void MoveEnemy(Transform currentRoute)
     {
+
         Vector3 direction = (currentRoute.position - transform.position).normalized;
         //direction.Normalize();
         direction.y = 0;
@@ -498,6 +531,8 @@ public partial class Enemy : MonoBehaviour
         CheckIfAbleToJump();
     }
 
+
+
     void MoveEnemy(Vector3 direction)
     {
         direction = Vector3.Normalize(direction);
@@ -535,6 +570,86 @@ public partial class Enemy : MonoBehaviour
 
         return new Vector3(Mathf.Sin(angleInDegrees * Mathf.Deg2Rad), 0, Mathf.Cos(angleInDegrees * Mathf.Deg2Rad));
     }
+
+    void MoveFlyingEnemy(Transform target)
+    {
+        
+        // Calculate horizontal direction towards the target
+        Vector3 horizontalDirection = new Vector3(target.position.x - transform.position.x, 0, target.position.z - transform.position.z).normalized;
+
+        hoverChangeTimer += Time.fixedDeltaTime;
+
+        if (hoverChangeTimer > hoverChangeInterval)
+        {
+            UpdateHoverOffset();
+            hoverChangeTimer = 0f; // Reset the timer
+        }
+
+        currentHoverOffset = Mathf.Lerp(currentHoverOffset, targetHoverOffset, Time.fixedDeltaTime * (1 / hoverChangeInterval));
+
+        float hoverOffset = enemy.hoverHeight + currentHoverOffset;
+        float desiredHeight = target.position.y + hoverOffset;
+        float verticalDirection = desiredHeight - transform.position.y;
+
+
+        // Apply horizontal and vertical movement
+        Vector3 movement = horizontalDirection * enemySpeed + Vector3.up * verticalDirection * enemy.flySpeed;
+
+
+        Quaternion toRotation = Quaternion.LookRotation(horizontalDirection, Vector3.up);
+        transform.rotation = Quaternion.Slerp(transform.rotation, toRotation, Time.fixedDeltaTime * 5f);
+
+        // Move the enemy using Rigidbody
+        rb.MovePosition(transform.position + movement * Time.deltaTime);
+    }
+
+    void MoveFlyingEnemy(Vector3 targetPosition)
+    {
+        // Calculate horizontal direction towards the target
+        Vector3 horizontalDirection = new Vector3(targetPosition.x - transform.position.x, 0, targetPosition.z - transform.position.z).normalized;
+
+        hoverChangeTimer += Time.fixedDeltaTime;
+
+        if (hoverChangeTimer > hoverChangeInterval)
+        {
+            UpdateHoverOffset();
+            hoverChangeTimer = 0f; // Reset the timer
+        }
+
+        currentHoverOffset = Mathf.Lerp(currentHoverOffset, targetHoverOffset, Time.fixedDeltaTime * (1 / hoverChangeInterval));
+
+        float hoverOffset = enemy.hoverHeight + currentHoverOffset;
+        float desiredHeight = targetPosition.y + hoverOffset;
+        float verticalDirection = desiredHeight - transform.position.y;
+        Vector3 movement;
+
+        if (!isWandering)
+        {
+            // Apply horizontal and vertical movement
+            movement = horizontalDirection * enemySpeed + Vector3.up * verticalDirection * enemy.flySpeed;
+
+            Quaternion toRotation = Quaternion.LookRotation(horizontalDirection, Vector3.up);
+            transform.rotation = Quaternion.Slerp(transform.rotation, toRotation, Time.fixedDeltaTime * 5f);
+        }
+        else
+        {
+            // Apply horizontal and vertical movement
+            movement = targetPosition * wanderSpeed + Vector3.up * verticalDirection * enemy.flySpeed;
+
+            Quaternion toRotation = Quaternion.LookRotation(targetPosition, Vector3.up);
+            transform.rotation = Quaternion.Slerp(transform.rotation, toRotation, Time.fixedDeltaTime * 5f);
+        }
+
+        // Move the enemy using Rigidbody
+        rb.MovePosition(rb.position + movement * Time.fixedDeltaTime);
+    }
+
+    void UpdateHoverOffset()
+    {
+        // Create a new target hover offset within a certain range
+        targetHoverOffset = Random.Range(-enemy.hoverHeight / 2f, enemy.hoverHeight / 2f);
+    }
+
 
     private void OnDrawGizmos()
     {

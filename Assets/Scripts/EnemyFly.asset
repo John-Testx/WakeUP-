@@ -10,9 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 24f92203e57d57847a77215412e5f68b, type: 3}
-  m_Name: EnemyTest1 1
+  m_Name: EnemyFly
   m_EditorClassIdentifier: 
-  health: 150
-  attackRange: 5.5
+  health: 70
+  attackRange: 1
   attackSpeed: 10
-  enemyType: 2
+  enemyType: 3
+  hoverHeight: 6
+  flySpeed: 1.2

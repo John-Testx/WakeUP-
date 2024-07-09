@@ -10,13 +10,17 @@ public class ScriptableEnemy : ScriptableObject
     {
         None,
         Melee,
-        Shooting
+        Shooting,
+        Flying
     }
 
     public int health;
     public float attackRange;
     public float attackSpeed;
     public EnemyType enemyType;
+    public float hoverHeight;
+    public float flySpeed;
+
 
     // Start is called before the first frame update
     void Start()
