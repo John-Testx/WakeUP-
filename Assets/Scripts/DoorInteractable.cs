@@ -8,6 +8,7 @@ using UnityEngine;
 public class DoorInteractable : MonoBehaviour, IInteractable {
 
     public Inventory inventory;
+    public GameObject player;
     public Animator animator;
     string text;
     public int doorType;
@@ -88,17 +89,19 @@ public class DoorInteractable : MonoBehaviour, IInteractable {
     IEnumerator opening()
     {
         print("you are opening the door");
-        if(doorType == 2 ) { animator.Play("OpeningDoor2"); }
-        else {animator.Play("Opening");}
+        Physics.IgnoreCollision(this.GetComponent<Collider>(), player.GetComponent<Collider>(), true);
+        if (doorType == 2 ) { animator.Play("OpeningDoor2"); }
+        else {animator.Play("Opening 1");}
         opened = true;
         yield return new WaitForSeconds(.5f);
+        Physics.IgnoreCollision(this.GetComponent<Collider>(), player.GetComponent<Collider>(), false);
     }
 
     IEnumerator closing()
     {
         print("you are closing the door");
         if (doorType == 2) { animator.Play("ClosingDoor2"); }
-        else { animator.Play("Closing"); }
+        else { animator.Play("Closing 1"); }
         opened = false;
         yield return new WaitForSeconds(.5f);
     }
