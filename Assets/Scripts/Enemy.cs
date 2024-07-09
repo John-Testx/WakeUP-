@@ -28,6 +28,9 @@ public partial class Enemy : MonoBehaviour
     Vector3 avoidanceDirection;
     Vector3 wanderDirection;
 
+    [SerializeField] private ScriptableEnemy enemy;
+    [SerializeField] private ScriptableEnemy.EnemyType enemyType;
+
     [Header("EnemyState")]
     public bool isWalking;
     public bool chasing;
@@ -71,6 +74,15 @@ public partial class Enemy : MonoBehaviour
     public float airDrag;
 
     private Vector3 velocity;
+    public Transform shootingPoint;
+    public float shootingRange = 100f;
+    public float shootingInterval = 2f;
+    public int damage = 10;
+    public LayerMask hitMask;
+    public LineRenderer laserLine;
+    private float shootingTimer;
+    public float laserDuration = 0.05f;
+
 
     // Start is called before the first frame update
     void Start()
@@ -79,12 +91,14 @@ public partial class Enemy : MonoBehaviour
 
         targetMask = LayerMask.GetMask("Target");
         obstructionMask = LayerMask.GetMask("Obstruction");
+
     }
 
     void Update()
     {
         isGround = CheckIfGrounded();
         EnemyInteraction();
+        
     }
 
     // Update is called once per frame
@@ -138,6 +152,38 @@ public partial class Enemy : MonoBehaviour
                 interactable.Interact();
              }
         }
+    }
+
+    private void Shoot()
+    {
+        StartCoroutine(ShootLaser());
+
+        RaycastHit hit;
+        Vector3 shootingDirection = shootingPoint.forward;
+
+        if (Physics.Raycast(shootingPoint.position, shootingPoint.forward, out hit, shootingRange, hitMask))
+        {
+            Debug.DrawLine(shootingPoint.position, hit.point, Color.red, 1f);
+            Debug.Log("Hit: " + hit.collider.name);
+
+            laserLine.SetPosition(0, shootingPoint.position);
+            laserLine.SetPosition(1, hit.point);
+        }
+        else
+        {
+            Vector3 endPoint = shootingPoint.position + (shootingDirection * shootingRange);
+            Debug.DrawRay(shootingPoint.position, shootingDirection * shootingRange, Color.green, 1f);
+
+            laserLine.SetPosition(0, shootingPoint.position);
+            laserLine.SetPosition(1, endPoint);
+        }
+    }
+
+    private IEnumerator ShootLaser()
+    {
+        laserLine.enabled = true;
+        yield return new WaitForSeconds(laserDuration);
+        laserLine.enabled = false;
     }
 
     private bool IsGroundBetween(Vector3 startPosition, Vector3 endPosition)
@@ -204,13 +250,13 @@ public partial class Enemy : MonoBehaviour
         // Calculate the angle between the enemy's forward direction and the direction to the player
         float angleToPlayer = Vector3.Angle(transform.forward, directionToPlayer);
 
-        MoveEnemy(playerRef.transform);
+        AttackPlayer(distance);
 
         /*Debug.Log("Distance to player: " + distance);
         Debug.Log("Angle to player: " + angleToPlayer);
         */
-        
-         if (distance > 15)
+
+        if (distance > 15)
         {
             
             chasing = false;
@@ -218,6 +264,36 @@ public partial class Enemy : MonoBehaviour
             GetClosestPath();
         }
     }
+
+    void AttackPlayer(float distance)
+    {
+        if (distance < 15)
+        {
+            if (distance <= enemy.attackRange)
+            {
+                // Attack();
+                shootingTimer += Time.deltaTime;
+
+                if (shootingTimer >= shootingInterval)
+                {
+                    Shoot();
+                    shootingTimer = 0f;
+                }
+            }
+            else
+            {
+                MoveEnemy(playerRef.transform);
+            }
+        }
+        else
+        {
+            chasing = false;
+            Debug.Log("Lost Track of the player. Distance: " + distance);
+            GetClosestPath();
+        }
+
+    }
+
 
     void FollowPath()
     {

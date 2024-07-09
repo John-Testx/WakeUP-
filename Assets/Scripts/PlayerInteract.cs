@@ -8,6 +8,7 @@ public class PlayerInteract : MonoBehaviour
     [SerializeField] Camera playerCam;
     public PlayerCamera PlayerCamera;
     [SerializeField] Player1 player;
+    [SerializeField] KeyCode interactKey;
     public UIText UIText;
     [SerializeField] private int interactDistance;
     Ray ray;
@@ -45,7 +46,7 @@ public class PlayerInteract : MonoBehaviour
                 else { UIText.ShowInteractMessage(false, ""); }
 
                 //Debug.Log(hitData.transform.gameObject.name);
-                if (Input.GetKeyDown(KeyCode.E) && hitData.collider.TryGetComponent(out IInteractable interactable))
+                if (Input.GetKeyDown(interactKey) && hitData.collider.TryGetComponent(out IInteractable interactable))
                 {
 
                     UIText.ShowInteractMessage(false, "");
@@ -63,7 +64,7 @@ public class PlayerInteract : MonoBehaviour
 
         foreach (Collider collider in colliders)
         {
-            if (Input.GetKeyDown(KeyCode.E))
+            if (Input.GetKeyDown(interactKey))
             {
                 if (collider.TryGetComponent(out IInteractable interactable))
                 {

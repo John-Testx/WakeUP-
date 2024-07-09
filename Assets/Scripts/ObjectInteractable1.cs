@@ -49,8 +49,9 @@ public class ObjectInteractable1 : MonoBehaviour, IInteractable
     {
         if (pickable)
         {
-            canGrab = inventory.AddItem(transform);
 
+            canGrab = inventory.AddItem(gameObject);
+            Debug.Log("Object Grabbed");
         }
     }
 }
