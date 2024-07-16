@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: EnemyFly
   m_EditorClassIdentifier: 
   health: 70
-  attackRange: 1
+  attackRange: 2
   attackSpeed: 10
   enemyType: 3
   hoverHeight: 6

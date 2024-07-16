@@ -1,11 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using TMPro;
-using Unity.VisualScripting;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
 
 public partial class Enemy : MonoBehaviour
 {
@@ -28,7 +26,7 @@ public partial class Enemy : MonoBehaviour
     Vector3 avoidanceDirection;
     Vector3 wanderDirection;
 
-    [SerializeField] private ScriptableEnemy enemy;
+    public ScriptableEnemy enemy;
     [SerializeField] private ScriptableEnemy.EnemyType enemyType;
 
     [Header("EnemyState")]
@@ -42,6 +40,7 @@ public partial class Enemy : MonoBehaviour
     [SerializeField] private bool canJump = true;
     [SerializeField] private bool canMove = true;
     [SerializeField] private bool followPath = true;
+    [SerializeField] private bool drawGizmos = true;
     [SerializeField] private bool useFootsteps = true;
 
     [Header("EnemyFOV")]
@@ -245,7 +244,6 @@ public partial class Enemy : MonoBehaviour
             
         }
     }
-    
     void ChasePlayer()
     {
         float distance = Vector3.Distance(transform.position, playerRef.transform.position);
@@ -351,6 +349,13 @@ public partial class Enemy : MonoBehaviour
 
             // Generate a new random direction
             Vector3 randomDirection = new Vector3(Random.Range(-1f, 1f), 0, Random.Range(-1f, 1f));
+
+            // Ensure the random direction is not zero
+            if (randomDirection == Vector3.zero)
+            {
+                Debug.LogWarning("Generated random direction is zero. Regenerating direction.");
+                randomDirection = new Vector3(Random.Range(-1f, 1f), 0, Random.Range(-1f, 1f));
+            }
 
             // Set the new direction and reset the timer
             wanderDirection = randomDirection;
@@ -535,6 +540,12 @@ public partial class Enemy : MonoBehaviour
 
     void MoveEnemy(Vector3 direction)
     {
+        if (direction == Vector3.zero)
+        {
+            // If direction is zero, do not rotate and return
+            return;
+        }
+
         direction = Vector3.Normalize(direction);
         Vector3 velocity;
 
@@ -553,7 +564,7 @@ public partial class Enemy : MonoBehaviour
         Quaternion toRotation = Quaternion.LookRotation(direction, Vector3.up);
         transform.rotation = Quaternion.Slerp(transform.rotation, toRotation, Time.fixedDeltaTime * 5f);
 
-        Debug.Log(velocity);
+        //Debug.Log(velocity);
 
         // Move the enemy using the Rigidbody's MovePosition method
         rb.MovePosition(rb.position + velocity * Time.fixedDeltaTime);
@@ -621,7 +632,7 @@ public partial class Enemy : MonoBehaviour
         float hoverOffset = enemy.hoverHeight + currentHoverOffset;
         float desiredHeight = targetPosition.y + hoverOffset;
         float verticalDirection = desiredHeight - transform.position.y;
-        Vector3 movement;
+        Vector3 movement = Vector3.zero;
 
         if (!isWandering)
         {
@@ -633,11 +644,19 @@ public partial class Enemy : MonoBehaviour
         }
         else
         {
-            // Apply horizontal and vertical movement
-            movement = targetPosition * wanderSpeed + Vector3.up * verticalDirection * enemy.flySpeed;
+            if (targetPosition.sqrMagnitude > 0.0001f) // Using sqrMagnitude for better performance
+            {
+                // Apply horizontal and vertical movement
+                movement = targetPosition * wanderSpeed + Vector3.up * verticalDirection * enemy.flySpeed;
 
-            Quaternion toRotation = Quaternion.LookRotation(targetPosition, Vector3.up);
-            transform.rotation = Quaternion.Slerp(transform.rotation, toRotation, Time.fixedDeltaTime * 5f);
+                Quaternion toRotation = Quaternion.LookRotation(targetPosition, Vector3.up);
+                transform.rotation = Quaternion.Slerp(transform.rotation, toRotation, Time.fixedDeltaTime * 5f);
+            }
+            else
+            {
+                // Handle the case where targetPosition is zero
+                Debug.LogWarning("Target position is zero. Skipping rotation.");
+            }
         }
 
         // Move the enemy using Rigidbody
@@ -653,25 +672,33 @@ public partial class Enemy : MonoBehaviour
 
     private void OnDrawGizmos()
     {
+        if (drawGizmos)
+        {
+            #if UNITY_EDITOR
+            Handles.color = Color.white;
+            Handles.DrawWireArc(transform.position, Vector3.up, Vector3.forward, 360f, radius);
 
-        UnityEditor.Handles.color = Color.white;
-        UnityEditor.Handles.DrawWireArc(transform.position, Vector3.up, Vector3.forward, 360f, radius);
+            // Draw the field of view angle
+            Vector3 viewAngle01 = DirectionFromAngle(-angle / 2, false);
+            Vector3 viewAngle02 = DirectionFromAngle(angle / 2, false);
+            Handles.color = Color.yellow;
+            Handles.DrawLine(transform.position, transform.position + viewAngle01 * radius);
+            Handles.DrawLine(transform.position, transform.position + viewAngle02 * radius);
 
-        // Draw the field of view angle
-        Vector3 viewAngle01 = DirectionFromAngle(-angle / 2, false);
-        Vector3 viewAngle02 = DirectionFromAngle(angle / 2, false);
-        UnityEditor.Handles.color = Color.yellow;
-        UnityEditor.Handles.DrawLine(transform.position, transform.position + viewAngle01 * radius);
-        UnityEditor.Handles.DrawLine(transform.position, transform.position + viewAngle02 * radius);
-
-        if (canSeePlayer)
+            if (canSeePlayer)
             {
-                UnityEditor.Handles.color = Color.green;
-                UnityEditor.Handles.DrawLine(transform.transform.position, playerRef.transform.position);
+                Handles.color = Color.green;
+                Handles.DrawLine(transform.transform.position, playerRef.transform.position);
             }
-
+            #endif
+        }
     }
 
+    public void EnemyIsDead()
+    {
+        canMove = false;
+        drawGizmos = false;
+    }
 
 
     /*private void OnDrawGizmos()

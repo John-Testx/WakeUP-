@@ -165,6 +165,11 @@ public class Inventory : MonoBehaviour
         ItemSwitch i = FindObjectOfType<ItemSwitch>();
         GameObject currentItem = i.GetCurrentItem();
 
+        if(currentItem.TryGetComponent<Grenade>(out Grenade grenade))
+        {
+            grenade.hasBeenThrown = true;
+        }
+
         //same as drop function, but add force to object before undefining it
         Physics.IgnoreCollision(currentItem.GetComponent<Collider>(), player.GetComponent<Collider>(), false);
         currentItem.layer = 0;
@@ -201,7 +206,7 @@ public class Inventory : MonoBehaviour
         {
             Transform child = Holder.GameObject().transform.GetChild(index);
 
-            ObjectInteractable1 keyInteractable = child.GetComponent<ObjectInteractable1>();
+            ObjectInteractable2 keyInteractable = child.GetComponent<ObjectInteractable2>();
 
             if (keyInteractable != null)
             {

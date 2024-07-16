@@ -16,6 +16,8 @@ public class PlayerInteract : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (PlayerCamera == null) return;
+
         switch (PlayerCamera.cameraType)
         {
             case PlayerCamera.CameraType.Player:
@@ -29,34 +31,41 @@ public class PlayerInteract : MonoBehaviour
 
     void HandlePlayerInteraction()
     {
-        ray = new Ray(playerCam.transform.position, playerCam.transform.forward);
-        RaycastHit hitData;
-        UnityEngine.Debug.DrawRay(ray.origin, ray.direction * 1.2f);
-        Physics.Raycast(ray, out hitData, interactDistance);
+        if (playerCam == null || UIText == null) return;
 
-        if (UIText != null)
+        Ray ray = new Ray(playerCam.transform.position, playerCam.transform.forward);
+        Debug.DrawRay(ray.origin, ray.direction * interactDistance, Color.red);
+
+        if (Physics.Raycast(ray, out RaycastHit hitData, interactDistance )) //, interactionMask
         {
-            if (hitData.collider != null)
-            {
-                if (hitData.collider.TryGetComponent(out IInteractable inter))
-                {
-
-                    UIText.ShowInteractMessage(true, inter.GetInteractText());
-                }
-                else { UIText.ShowInteractMessage(false, ""); }
-
-                //Debug.Log(hitData.transform.gameObject.name);
-                if (Input.GetKeyDown(interactKey) && hitData.collider.TryGetComponent(out IInteractable interactable))
-                {
-
-                    UIText.ShowInteractMessage(false, "");
-                    interactable.InteractWithPlayer(player);
-
-                }
-            }
-            else { UIText.ShowInteractMessage(false, ""); }
+            ProcessRaycastHit(hitData);
+        }
+        else
+        {
+            UIText.ShowInteractMessage(false, "");
         }
     }
+
+    private void ProcessRaycastHit(RaycastHit hitData)
+    {
+        if (hitData.collider != null)
+        {
+            if (hitData.collider.TryGetComponent(out IInteractable interactable))
+            {
+                UIText.ShowInteractMessage(true, interactable.GetInteractText());
+
+                if (Input.GetKeyDown(interactKey))
+                {
+                    UIText.ShowInteractMessage(false, "");
+                    interactable.InteractWithPlayer(player);
+                }
+            }
+            else{   UIText.ShowInteractMessage(false, "");  }
+        }
+        else{  UIText.ShowInteractMessage(false, "");  }
+    }
+
+
     void HandleVehicleInteraction()
     {
         float interactRange = 3f;
