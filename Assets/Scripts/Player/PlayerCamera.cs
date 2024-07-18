@@ -16,21 +16,17 @@ public class PlayerCamera : MonoBehaviour
     }
 
     public CameraType cameraType;
-
-    public Vector2 mouseSensitivity;
-    
-    float RotacionVertical = 0; //Eje de rotacion X
-    float RotacionHorizontal = 0; //Eje de rotacion Y
-
     public Transform Objeto;
-
+    public Transform arms;
     public static List<PlayerCamera> playerCameras = new List<PlayerCamera>(); // List to store all PlayerCamera instances
     public Camera playerCamera;
-
-
+    private float RotacionVertical = 0; //Eje de rotacion X
+    private float RotacionHorizontal = 0; //Eje de rotacion Y
     [SerializeField] private bool canRotate;
     [SerializeField] private static bool moveMouse = true;
-    
+
+    [SerializeField] private Vector2 mouseSensitivity;
+    public Vector2 MouseSensitivity { get { return mouseSensitivity; } set { mouseSensitivity = value; } }
 
 
     void Awake()
@@ -63,29 +59,36 @@ public class PlayerCamera : MonoBehaviour
     void Update()
     {
         
+        RegularCameraMovement();
 
+        //float angle = camara.localEulerAngles.x - mouseY * mouseSensivity;
+        //camara.localEulerAngles= Vector3.right * angle;
+    }
+
+    void RegularCameraMovement()
+    {
         if (moveMouse && canRotate)
         {
             float mouseX = Input.GetAxis("Mouse X");
             float mouseY = Input.GetAxis("Mouse Y");
             RotacionVertical += -mouseY;
             RotacionHorizontal = mouseX;
-            
+
             // GetHorizontalRotation();
-            
+
             GetVerticalRotation();//Esto hace que no pueda pasar de 80 o -80 en el eje de rotacion X
-            transform.localRotation = Quaternion.Euler(RotacionVertical, 0, 0);
+
+            if (arms == null) { transform.localRotation = Quaternion.Euler(RotacionVertical, 0, 0);     }
+            else { arms.localRotation = Quaternion.Euler(RotacionVertical, 0, 0);   }
+            
             if (Objeto != null)
             {
                 Objeto.Rotate(Vector3.up * RotacionHorizontal);
             }
         }
-
-        //float angle = camara.localEulerAngles.x - mouseY * mouseSensivity;
-        //camara.localEulerAngles= Vector3.right * angle;
-
-
     }
+
+
     void GetHorizontalRotation()
     {
         switch (cameraType)

@@ -261,4 +261,30 @@ public class PlayerInventory : Inventory1
         itemSwitch.SelectItem();
     }
 
+    public int GetKey(int i)
+    {
+
+        int childCount = Holder.GameObject().transform.childCount;
+
+        for (int index = 0; index < childCount; index++)
+        {
+            Transform child = Holder.GameObject().transform.GetChild(index);
+
+            ObjectInteractable2 keyInteractable = child.GetComponent<ObjectInteractable2>();
+
+            if (keyInteractable != null)
+            {
+                int code = keyInteractable.GetKeyCode();
+
+                if (code == i)
+                {
+                    RemoveItem(index);
+                    return code;
+                }
+            }
+        }
+
+        return 0;
+    }
+
 }

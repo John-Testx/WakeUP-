@@ -7,7 +7,7 @@ using UnityEngine;
 
 public class DoorInteractable : MonoBehaviour, IInteractable {
 
-    public Inventory inventory;
+    public PlayerInventory inventory;
     public GameObject player;
     public Animator animator;
     string text;
@@ -20,7 +20,7 @@ public class DoorInteractable : MonoBehaviour, IInteractable {
     void Start()
     {
         animator = GetComponent<Animator>();
-        inventory = FindObjectOfType<Inventory>();
+        inventory = FindObjectOfType<PlayerInventory>();
     }
 
 

@@ -7,7 +7,8 @@ public class Player1 : MonoBehaviour
 {
     Vector3 direction, climbDirection;
     public Rigidbody rb;
-    PlayerAnimation playerAnimation;
+    Animator animator;
+    //PlayerAnimation playerAnimation;
     public bool isGround;
     public LayerMask groundMask;
     public Transform groundCheck;
@@ -56,6 +57,7 @@ public class Player1 : MonoBehaviour
     [SerializeField, Range (1,6)] int maxAirJumps;
     int jumpPhase;
 
+    [SerializeField] private float playerHeightSound = 3f;
     [SerializeField] private float baseStepSpeed = 0.5f;
     [SerializeField] private float crouchStepMultiplier = 1.5f;
     [SerializeField] private float sprintStepMultiplier = 0.6f;
@@ -78,12 +80,13 @@ public class Player1 : MonoBehaviour
         
         rb = GetComponent<Rigidbody>();
         _gravityBody = transform.GetComponent<GravityBody>();
-        playerAnimation = GetComponent<PlayerAnimation>();
+        animator = GetComponentInChildren<Animator>();
+        //playerAnimation = GetComponent<PlayerAnimation>();
         CurrentSpeed = movementSpeed;
         rb.freezeRotation = true;
 
-        if (playerAnimation != null)    {   useAnimation = true;    }
-        else { useAnimation = false; }
+        //if (playerAnimation != null)    {   useAnimation = true;    }
+        //else { useAnimation = false; }
     }
 
     void Update()
@@ -128,7 +131,7 @@ public class Player1 : MonoBehaviour
 
         if(footstepTimer <= 0)
         {
-            if(Physics.Raycast(transform.position,Vector3.down, out RaycastHit hitInfo, 3)) 
+            if(Physics.Raycast(transform.position + Vector3.up ,Vector3.down, out RaycastHit hitInfo, playerHeightSound)) 
             {
                 switch(hitInfo.collider.tag) 
                 {
@@ -154,33 +157,32 @@ public class Player1 : MonoBehaviour
 
     }
     
+    bool grabbing= false;
     void ChangePlayerAnimation()
     {
-        if (wasWalkingLastFrame)
+        
+        if (Input.GetKey(KeyCode.R))
         {
-            playerAnimation.idle = false;
-
-            if (isSprinting)
-            {
-                playerAnimation.running = true;
-                playerAnimation.walking = false;
-            }
-            else
-            {
-                playerAnimation.walking = true;
-                playerAnimation.running = false;
-            }
+            grabbing = !grabbing;
+            animator.SetBool("IsGrabbing", grabbing);
         }
-        else if (!wasWalkingLastFrame)
+
+        if (!wasWalkingLastFrame)
         {
-            playerAnimation.idle = true;
-            playerAnimation.walking = false;
-            playerAnimation.running = false;
+            animator.SetFloat("Speed", 0 ,0.2f ,Time.deltaTime);
+        }
+
+        else
+        {
+            if (isSprinting) { animator.SetFloat("Speed", 1, 0.2f, Time.deltaTime); }
+
+            else { animator.SetFloat("Speed", 0.5f, 0.2f, Time.deltaTime); }
         }
 
         // Store walking state for next frame
         wasWalkingLastFrame = direction != Vector3.zero;
     }
+    
 
 
     bool CheckIfGrounded()
@@ -231,7 +233,7 @@ public class Player1 : MonoBehaviour
 
             rb.velocity = velocity;
 
-            playerAnimation.jumping = true;
+            //playerAnimation.jumping = true;
         }
        
     }

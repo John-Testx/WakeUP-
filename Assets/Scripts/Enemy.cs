@@ -415,6 +415,8 @@ public partial class Enemy : MonoBehaviour
 
         Debug.Log($"Distance: {distance}, HeightDifference: {distanceY} ");
 
+        if(closestIndex < -1 || closestIndex > pathList.Count) { return; }
+
         float closestPointDistance = Vector3.Distance(transform.position, pathList[closestIndex].position);
         float sameLevelPointDistance = Vector3.Distance(transform.position, pathList[sameLevelIndex].position);
         
